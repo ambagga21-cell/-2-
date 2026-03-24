@@ -1,0 +1,144 @@
+import pickle
+class Book:
+    def __init__(self, title, author, status="available"):
+        self.title = title
+        self.author = author
+        self.status = status
+
+    def __str__(self):
+        return f"{self.title} - {self.author} [{self.status}]"
+class Person:
+    def __init__(self, name):
+        self._name = name
+
+    def get_role(self):
+        return "Person"
+
+class User(Person):
+    def __init__(self, name):
+        super().__init__(name)
+        self.__books = []
+
+    def get_role(self):
+        return "User"
+
+    def add_book(self, title):
+        self.__books.append(title)
+
+    def return_book(self, title):
+        if title in self.__books:
+            self.__books.remove(title)
+
+    def get_books(self):
+        return self.__books
+    
+class Librarian(Person):
+    def get_role(self):
+        return "Librarian"
+def load_books():
+    try:
+        with open("books.pkl", "rb") as f:
+            return pickle.load(f)
+    except FileNotFoundError:
+        return []
+    
+def save_books(books):
+    with open("books.pkl", "wb") as f:
+        pickle.dump(books, f)
+
+def load_users():
+    try:
+        with open("users.pkl", "rb") as f:
+            return pickle.load(f)
+    except FileNotFoundError:
+        return {}
+    
+
+def save_users(users):
+    with open("users.pkl", "wb") as f:
+        pickle.dump(users, f)
+
+books = load_books()
+users = load_users()
+
+print("Выберите роль:")
+print("1 - Библиотекарь")
+print("2 - Пользователь")
+choice = input("> ")
+
+if choice == "1":
+    name = input("Имя библиотекаря: ")
+    librarian = Librarian(name)
+
+    while True:
+        print("\n1. Добавить книгу")
+        print("2. Удалить книгу")
+        print("3. Зарегистрировать пользователя")
+        print("4. Список пользователей")
+        print("5. Список книг")
+        print("0. Выход")
+
+        cmd = input("> ")
+
+        if cmd == "1":
+            title = input("Название: ")
+            author = input("Автор: ")
+            books.append(Book(title, author))
+            print("Книга добавлена")
+        elif cmd == "2":
+            title = input("Название книги: ")
+            books[:] = [b for b in books if b.title != title]
+            print("Книга удалена")
+        elif cmd == "3":
+            uname = input("Имя пользователя: ")
+            users[uname] = User(uname)
+            print("Пользователь зарегистрирован")
+        elif cmd == "4":
+            for u in users:
+                print(u)
+        elif cmd == "5":
+            for b in books:
+                print(b)
+        elif cmd == "0":
+            break
+elif choice == "2":
+    name = input("Имя пользователя: ")
+    if name not in users:
+        print("Пользователь не найден")
+    else:
+        user = users[name]
+        while True:
+            print("\n1. Доступные книги")
+            print("2. Взять книгу")
+            print("3. Вернуть книгу")
+            print("4. Мои книги")
+            print("0. Выход")
+            cmd = input("> ")
+            if cmd == "1":
+                for b in books:
+                    if b.status == "available":
+                        print(b)
+            elif cmd == "2":
+                title = input("Название книги: ")
+                for b in books:
+                    if b.title == title:
+                        if b.status == "available":
+                            b.status = "issued"
+                            user.add_book(title)
+                            print("Книга выдана")
+                        else:
+                            print("Книга уже выдана")
+            elif cmd == "3":
+                title = input("Название книги: ")
+                for b in books:
+                    if b.title == title:
+                        b.status = "available"
+                        user.return_book(title)
+                        print("Книга возвращена")
+            elif cmd == "4":
+                print(user.get_books())
+            elif cmd == "0":
+                break
+save_books(books)
+save_users(users)
+print("Данные сохранены")
